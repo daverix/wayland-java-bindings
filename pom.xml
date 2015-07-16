@@ -43,6 +43,7 @@
         <module>stubs</module>
         <module>generator</module>
         <module>wayland</module>
+        <module>examples</module>
     </modules>
 
     <distributionManagement>

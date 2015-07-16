@@ -13,21 +13,36 @@
 //limitations under the License.
 package examples;
 
-import org.freedesktop.wayland.client.*;
+import org.freedesktop.wayland.client.WlBufferProxy;
+import org.freedesktop.wayland.client.WlCallbackEvents;
+import org.freedesktop.wayland.client.WlCallbackProxy;
+import org.freedesktop.wayland.client.WlKeyboardEventsV3;
+import org.freedesktop.wayland.client.WlKeyboardProxy;
+import org.freedesktop.wayland.client.WlOutputProxy;
+import org.freedesktop.wayland.client.WlPointerEventsV3;
+import org.freedesktop.wayland.client.WlPointerProxy;
+import org.freedesktop.wayland.client.WlRegionEvents;
+import org.freedesktop.wayland.client.WlShellSurfaceEvents;
+import org.freedesktop.wayland.client.WlShellSurfaceProxy;
+import org.freedesktop.wayland.client.WlSurfaceEventsV3;
+import org.freedesktop.wayland.client.WlSurfaceProxy;
 import org.freedesktop.wayland.shared.WlPointerButtonState;
 import org.freedesktop.wayland.shared.WlShellSurfaceResize;
 import org.freedesktop.wayland.util.Fixed;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+
+import javax.annotation.Nonnull;
 
 import static org.freedesktop.wayland.shared.WlShmFormat.XRGB8888;
 
 public class Window implements WlShellSurfaceEvents,
                                WlSurfaceEventsV3,
                                WlPointerEventsV3,
-                               WlRegionEvents {
+                               WlRegionEvents,
+                               WlKeyboardEventsV3 {
 
     private static final int BTN_LEFT  = 0x110;
     private static final int BTN_RIGHT = 0x111;
@@ -37,6 +52,7 @@ public class Window implements WlShellSurfaceEvents,
     private final WlSurfaceProxy surfaceProxy;
     private final Display        display;
     private final WlPointerProxy pointerProxy;
+    private final WlKeyboardProxy keyboardProxy;
 
     private WlCallbackProxy callbackProxy;
     private BufferPool      bufferPool;
@@ -70,6 +86,8 @@ public class Window implements WlShellSurfaceEvents,
                                                               this.surfaceProxy);
         this.pointerProxy = this.display.getSeatProxy()
                                         .getPointer(this);
+        this.keyboardProxy = this.display.getSeatProxy()
+                                        .getKeyboard(this);
 
         this.surfaceProxy.damage(0,
                                  0,
@@ -214,6 +232,7 @@ public class Window implements WlShellSurfaceEvents,
         this.shellSurfaceProxy.destroy();
         this.surfaceProxy.destroy();
         this.pointerProxy.destroy();
+        this.keyboardProxy.destroy();
         if (callbackProxy != null) {
             this.callbackProxy.destroy();
         }
@@ -340,5 +359,30 @@ public class Window implements WlShellSurfaceEvents,
         });
 
         this.surfaceProxy.commit();
+    }
+
+    @Override
+    public void keymap(WlKeyboardProxy wlKeyboardProxy, int i, int i1, int i2) {
+        System.out.println(String.format("keymap %d %d %d", i, i1, i2));
+    }
+
+    @Override
+    public void enter(WlKeyboardProxy wlKeyboardProxy, int i, @Nonnull WlSurfaceProxy wlSurfaceProxy, @Nonnull ByteBuffer byteBuffer) {
+        System.out.println("keyboard enter");
+    }
+
+    @Override
+    public void leave(WlKeyboardProxy wlKeyboardProxy, int i, @Nonnull WlSurfaceProxy wlSurfaceProxy) {
+        System.out.println("keyboard exit");
+    }
+
+    @Override
+    public void key(WlKeyboardProxy wlKeyboardProxy, int i, int i1, int i2, int i3) {
+        System.out.println(String.format("key %d %d %d %d", i, i1, i2, i3));
+    }
+
+    @Override
+    public void modifiers(WlKeyboardProxy wlKeyboardProxy, int i, int i1, int i2, int i3, int i4) {
+        System.out.println(String.format("modifier %d %d %d %d %d", i, i1, i2, i3, i4));
     }
 }
